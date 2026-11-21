@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import { BookOpen, FolderGit2 } from '@lucide/vue';
+import { BookOpen, FolderGit2, Ticket } from '@lucide/vue';
 import AppLogo from '@/components/AppLogo.vue';
 import NavFooter from '@/components/NavFooter.vue';
 import NavMain from '@/components/NavMain.vue';
@@ -14,10 +14,12 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { edit } from '@/routes/profile';
+import { index as ticketsIndex } from '@/routes/tickets';
 import type { NavItem } from '@/types';
 
-const mainNavItems: NavItem[] = [];
+const mainNavItems: NavItem[] = [
+    { title: 'Заявки', href: ticketsIndex(), icon: Ticket },
+];
 
 const footerNavItems: NavItem[] = [
     {
@@ -39,7 +41,7 @@ const footerNavItems: NavItem[] = [
             <SidebarMenu>
                 <SidebarMenuItem>
                     <SidebarMenuButton size="lg" as-child>
-                        <Link :href="edit()">
+                        <Link :href="ticketsIndex()">
                             <AppLogo />
                         </Link>
                     </SidebarMenuButton>
