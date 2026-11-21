@@ -82,7 +82,9 @@ class ProfileUpdateTest extends TestCase
             ]);
 
         $response
-            ->assertSessionHasErrors('email')
+            ->assertSessionHasErrors([
+                'email' => trans('validation.unique', ['attribute' => trans('validation.attributes.email')]),
+            ])
             ->assertRedirect(route('profile.edit'));
     }
 
