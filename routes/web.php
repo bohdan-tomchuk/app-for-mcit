@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Route;
 Route::inertia('/', 'Welcome')->name('home');
 
 Route::middleware('auth')->group(function () {
-    Route::resource('tickets', TicketController::class)->only(['index', 'create', 'store', 'show']);
+    Route::resource('tickets', TicketController::class)->only(['index', 'create', 'store', 'show', 'edit', 'update']);
     Route::patch('tickets/{ticket}/status', TicketStatusController::class)->name('tickets.status');
 });
 

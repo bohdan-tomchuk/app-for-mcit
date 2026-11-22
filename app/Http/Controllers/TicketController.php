@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\UpdateTicket;
 use App\Enums\TicketPriority;
 use App\Enums\TicketStatus;
 use App\Http\Requests\StoreTicketRequest;
+use App\Http\Requests\UpdateTicketRequest;
 use App\Http\Resources\TicketResource;
 use App\Http\Resources\TicketStatusChangeResource;
 use App\Models\Ticket;
@@ -37,9 +39,7 @@ class TicketController extends Controller
         Gate::authorize('create', Ticket::class);
 
         return Inertia::render('tickets/Create', [
-            'priorities' => collect(TicketPriority::cases())
-                ->map(fn (TicketPriority $p) => ['value' => $p->value, 'label' => $p->label()])
-                ->all(),
+            'priorities' => $this->priorityOptions(),
         ]);
     }
 
@@ -64,11 +64,49 @@ class TicketController extends Controller
         return Inertia::render('tickets/Show', [
             'ticket' => TicketResource::make($ticket)->resolve(),
             'history' => TicketStatusChangeResource::collection($history)->resolve(),
+            'can' => ['update' => $user->can('update', $ticket)],
             'transitions' => $user->can('changeStatus', $ticket)
                 ? collect($ticket->status->allowedTransitions())
                     ->map(fn (TicketStatus $s) => ['value' => $s->value, 'label' => $s->label()])
                     ->all()
                 : [],
         ]);
+    }
+
+    public function edit(Request $request, int $ticket): Response
+    {
+        $ticket = Ticket::visibleTo($request->user())->findOrFail($ticket);
+
+        Gate::authorize('update', $ticket);
+
+        return Inertia::render('tickets/Edit', [
+            'ticket' => $ticket->only('id', 'title', 'description') + ['priority' => $ticket->priority->value],
+            'priorities' => $this->priorityOptions(),
+        ]);
+    }
+
+    public function update(UpdateTicketRequest $request, UpdateTicket $updateTicket): RedirectResponse
+    {
+        $ticket = $request->ticket();
+
+        if (! $updateTicket->handle($ticket, array_filter($request->validated()), $request->user())) {
+            Inertia::flash('toast', ['type' => 'error', 'message' => __('Заявку вже взято в роботу, редагування недоступне')]);
+
+            return to_route('tickets.show', $ticket);
+        }
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('Заявку оновлено')]);
+
+        return to_route('tickets.show', $ticket);
+    }
+
+    /**
+     * @return list<array{value: string, label: string}>
+     */
+    private function priorityOptions(): array
+    {
+        return collect(TicketPriority::cases())
+            ->map(fn (TicketPriority $p) => ['value' => $p->value, 'label' => $p->label()])
+            ->all();
     }
 }

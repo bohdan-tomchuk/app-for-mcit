@@ -1,16 +1,17 @@
 <script setup lang="ts">
-import { Head, router } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
 import Heading from '@/components/Heading.vue';
 import InputError from '@/components/InputError.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { index, status } from '@/routes/tickets';
+import { edit, index, status } from '@/routes/tickets';
 import type { Option, StatusChange, Ticket } from '@/types';
 
 const props = defineProps<{
     ticket: Ticket;
     history: StatusChange[];
     transitions: Option[];
+    can: { update: boolean };
 }>();
 
 const changeStatus = (target: string) =>
@@ -54,6 +55,9 @@ const formatDate = (iso: string | null | undefined) =>
                 {{ t.value === 'in_progress' ? 'Взяти в роботу' : 'Завершити' }}
             </Button>
         </div>
+        <Button v-if="can.update" as-child data-test="edit-ticket-button">
+            <Link :href="edit(ticket.id)">Редагувати</Link>
+        </Button>
         <InputError :message="$page.props.errors.status" />
 
         <p class="whitespace-pre-wrap" data-test="ticket-description">{{ ticket.description }}</p>

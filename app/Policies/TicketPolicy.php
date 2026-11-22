@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Enums\TicketStatus;
 use App\Models\Ticket;
 use App\Models\User;
 
@@ -15,5 +16,12 @@ class TicketPolicy
     public function changeStatus(User $user, Ticket $ticket): bool
     {
         return $user->isAdmin();
+    }
+
+    public function update(User $user, Ticket $ticket): bool
+    {
+        return ! $user->isAdmin()
+            && $ticket->user_id === $user->id
+            && $ticket->status === TicketStatus::New;
     }
 }
