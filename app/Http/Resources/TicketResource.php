@@ -19,9 +19,11 @@ class TicketResource extends JsonResource
         return [
             'id' => $this->id,
             'title' => $this->title,
+            'description' => $this->when($request->routeIs('tickets.show'), fn () => $this->description),
             'priority' => ['value' => $this->priority->value, 'label' => $this->priority->label()],
             'status' => ['value' => $this->status->value, 'label' => $this->status->label()],
             'created_at' => $this->created_at?->toIso8601String(),
+            'updated_at' => $this->when($request->routeIs('tickets.show'), fn () => $this->updated_at?->toIso8601String()),
             'author' => $this->whenLoaded('author', fn () => $this->author->name),
         ];
     }

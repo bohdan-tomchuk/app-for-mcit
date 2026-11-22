@@ -3,7 +3,7 @@ import { Head, Link } from '@inertiajs/vue3';
 import Heading from '@/components/Heading.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { create, index } from '@/routes/tickets';
+import { create, index, show } from '@/routes/tickets';
 import type { Paginated, Ticket } from '@/types';
 
 defineProps<{
@@ -58,7 +58,15 @@ const formatDate = (iso: string | null) =>
                 <tbody>
                     <tr v-for="ticket in tickets.data" :key="ticket.id" class="border-b">
                         <td class="py-2">{{ ticket.id }}</td>
-                        <td>{{ ticket.title }}</td>
+                        <td>
+                            <Link
+                                :href="show(ticket.id)"
+                                class="font-medium hover:underline"
+                                data-test="ticket-link"
+                            >
+                                {{ ticket.title }}
+                            </Link>
+                        </td>
                         <td v-if="isAdmin">{{ ticket.author }}</td>
                         <td>{{ ticket.priority.label }}</td>
                         <td><Badge variant="secondary">{{ ticket.status.label }}</Badge></td>

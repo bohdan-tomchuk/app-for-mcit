@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Route;
 Route::inertia('/', 'Welcome')->name('home');
 
 Route::middleware('auth')->group(function () {
-    Route::resource('tickets', TicketController::class)->only(['index', 'create', 'store']);
+    Route::resource('tickets', TicketController::class)->only(['index', 'create', 'store', 'show']);
 });
 
 require __DIR__.'/settings.php';

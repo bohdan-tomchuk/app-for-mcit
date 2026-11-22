@@ -51,4 +51,13 @@ class TicketController extends Controller
 
         return to_route('tickets.index');
     }
+
+    public function show(Request $request, int $ticket): Response
+    {
+        $ticket = Ticket::visibleTo($request->user())->with('author:id,name')->findOrFail($ticket);
+
+        return Inertia::render('tickets/Show', [
+            'ticket' => TicketResource::make($ticket)->resolve(),
+        ]);
+    }
 }
