@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Enums\TicketPriority;
+use App\Enums\TicketStatus;
 use App\Http\Requests\StoreTicketRequest;
 use App\Http\Resources\TicketResource;
+use App\Http\Resources\TicketStatusChangeResource;
 use App\Models\Ticket;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -54,10 +56,19 @@ class TicketController extends Controller
 
     public function show(Request $request, int $ticket): Response
     {
-        $ticket = Ticket::visibleTo($request->user())->with('author:id,name')->findOrFail($ticket);
+        $user = $request->user();
+        $ticket = Ticket::visibleTo($user)->with('author:id,name')->findOrFail($ticket);
+
+        $history = $ticket->statusChanges()->with('actor:id,name')->orderBy('id')->get();
 
         return Inertia::render('tickets/Show', [
             'ticket' => TicketResource::make($ticket)->resolve(),
+            'history' => TicketStatusChangeResource::collection($history)->resolve(),
+            'transitions' => $user->can('changeStatus', $ticket)
+                ? collect($ticket->status->allowedTransitions())
+                    ->map(fn (TicketStatus $s) => ['value' => $s->value, 'label' => $s->label()])
+                    ->all()
+                : [],
         ]);
     }
 }

@@ -17,6 +17,14 @@ export type Ticket = {
     author?: string;
 };
 
+export type StatusChange = {
+    id: number;
+    from_status: Option;
+    to_status: Option;
+    actor: string;
+    created_at: string | null;
+};
+
 export type Paginated<T> = {
     data: T[];
     links: { first: string | null; last: string | null; prev: string | null; next: string | null };

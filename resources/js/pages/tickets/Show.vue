@@ -1,11 +1,20 @@
 <script setup lang="ts">
-import { Head } from '@inertiajs/vue3';
+import { Head, router } from '@inertiajs/vue3';
 import Heading from '@/components/Heading.vue';
+import InputError from '@/components/InputError.vue';
 import { Badge } from '@/components/ui/badge';
-import { index } from '@/routes/tickets';
-import type { Ticket } from '@/types';
+import { Button } from '@/components/ui/button';
+import { index, status } from '@/routes/tickets';
+import type { Option, StatusChange, Ticket } from '@/types';
 
-defineProps<{ ticket: Ticket }>();
+const props = defineProps<{
+    ticket: Ticket;
+    history: StatusChange[];
+    transitions: Option[];
+}>();
+
+const changeStatus = (target: string) =>
+    router.patch(status(props.ticket.id).url, { status: target }, { preserveScroll: true });
 
 defineOptions({
     layout: {
@@ -36,12 +45,26 @@ const formatDate = (iso: string | null | undefined) =>
             <dd>{{ formatDate(ticket.updated_at) }}</dd>
         </dl>
 
+        <div v-if="transitions.length" class="flex gap-2" data-test="ticket-transitions">
+            <Button
+                v-for="t in transitions"
+                :key="t.value"
+                @click="changeStatus(t.value)"
+            >
+                {{ t.value === 'in_progress' ? 'Взяти в роботу' : 'Завершити' }}
+            </Button>
+        </div>
+        <InputError :message="$page.props.errors.status" />
+
         <p class="whitespace-pre-wrap" data-test="ticket-description">{{ ticket.description }}</p>
 
         <section data-test="ticket-history">
             <h2 class="mb-2 font-semibold">Історія</h2>
             <ul class="text-sm">
                 <li>Створено {{ ticket.author }}, {{ formatDate(ticket.created_at) }}</li>
+                <li v-for="h in history" :key="h.id">
+                    {{ h.from_status.label }} → {{ h.to_status.label }}, {{ h.actor }}, {{ formatDate(h.created_at) }}
+                </li>
             </ul>
         </section>
     </div>
