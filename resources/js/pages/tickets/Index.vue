@@ -1,7 +1,10 @@
 <script setup lang="ts">
-import { Head } from '@inertiajs/vue3';
+import { Head, Link } from '@inertiajs/vue3';
 import Heading from '@/components/Heading.vue';
-import { index } from '@/routes/tickets';
+import { Button } from '@/components/ui/button';
+import { create, index } from '@/routes/tickets';
+
+defineProps<{ can: { create: boolean } }>();
 
 defineOptions({
     layout: {
@@ -14,6 +17,13 @@ defineOptions({
     <Head title="Заявки" />
 
     <div class="p-4">
-        <Heading title="Заявки" />
+        <div class="flex items-start justify-between">
+            <Heading title="Заявки" />
+            <Button v-if="can.create" as-child>
+                <Link :href="create()" data-test="new-ticket-button">
+                    Нова заявка
+                </Link>
+            </Button>
+        </div>
     </div>
 </template>
