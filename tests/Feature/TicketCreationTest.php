@@ -54,6 +54,17 @@ class TicketCreationTest extends TestCase
         ]);
     }
 
+    public function test_blank_priority_falls_back_to_normal(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->post(route('tickets.store'), ['title' => 'a', 'description' => 'b', 'priority' => ''])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('tickets', ['title' => 'a', 'priority' => 'normal']);
+    }
+
     public function test_invalid_fields_return_ukrainian_errors(): void
     {
         $user = User::factory()->create();

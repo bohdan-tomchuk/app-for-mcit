@@ -1,7 +1,5 @@
 <?php
 
-use App\Enums\TicketPriority;
-use App\Enums\TicketStatus;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
@@ -16,15 +14,13 @@ return new class extends Migration
             $table->foreignId('user_id')->index()->constrained();
             $table->string('title');
             $table->text('description');
-            $table->string('priority')->default(TicketPriority::Normal->value);
-            $table->string('status')->default(TicketStatus::New->value)->index();
+            $table->string('priority')->default('normal');
+            $table->string('status')->default('new')->index();
             $table->timestamps();
         });
 
-        $in = fn (array $cases) => implode(', ', array_map(fn ($c) => "'{$c->value}'", $cases));
-
-        DB::statement('ALTER TABLE tickets ADD CONSTRAINT tickets_priority_check CHECK (priority IN ('.$in(TicketPriority::cases()).'))');
-        DB::statement('ALTER TABLE tickets ADD CONSTRAINT tickets_status_check CHECK (status IN ('.$in(TicketStatus::cases()).'))');
+        DB::statement("ALTER TABLE tickets ADD CONSTRAINT tickets_priority_check CHECK (priority IN ('low', 'normal', 'high'))");
+        DB::statement("ALTER TABLE tickets ADD CONSTRAINT tickets_status_check CHECK (status IN ('new', 'in_progress', 'done'))");
     }
 
     public function down(): void

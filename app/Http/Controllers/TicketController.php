@@ -33,7 +33,7 @@ class TicketController extends Controller
 
     public function store(StoreTicketRequest $request): RedirectResponse
     {
-        $ticket = new Ticket($request->validated());
+        $ticket = new Ticket(array_filter($request->validated()));
         $ticket->user_id = $request->user()->id;
         $ticket->save();
 
