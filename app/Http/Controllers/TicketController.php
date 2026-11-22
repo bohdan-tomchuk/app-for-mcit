@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\TicketPriority;
 use App\Http\Requests\StoreTicketRequest;
+use App\Http\Resources\TicketResource;
 use App\Models\Ticket;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -15,8 +16,17 @@ class TicketController extends Controller
 {
     public function index(Request $request): Response
     {
+        $user = $request->user();
+
+        $tickets = Ticket::visibleTo($user)
+            ->when($user->isAdmin(), fn ($query) => $query->with('author:id,name'))
+            ->orderByDesc('id')
+            ->paginate(15);
+
         return Inertia::render('tickets/Index', [
-            'can' => ['create' => $request->user()->can('create', Ticket::class)],
+            'tickets' => TicketResource::collection($tickets),
+            'isAdmin' => $user->isAdmin(),
+            'can' => ['create' => $user->can('create', Ticket::class)],
         ]);
     }
 

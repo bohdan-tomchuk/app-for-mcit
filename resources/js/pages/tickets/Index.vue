@@ -1,16 +1,25 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
 import Heading from '@/components/Heading.vue';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { create, index } from '@/routes/tickets';
+import type { Paginated, Ticket } from '@/types';
 
-defineProps<{ can: { create: boolean } }>();
+defineProps<{
+    tickets: Paginated<Ticket>;
+    isAdmin: boolean;
+    can: { create: boolean };
+}>();
 
 defineOptions({
     layout: {
         breadcrumbs: [{ title: 'Заявки', href: index() }],
     },
 });
+
+const formatDate = (iso: string | null) =>
+    iso ? new Date(iso).toLocaleDateString('uk-UA') : '';
 </script>
 
 <template>
@@ -25,5 +34,50 @@ defineOptions({
                 </Link>
             </Button>
         </div>
+
+        <div
+            v-if="tickets.data.length === 0"
+            class="py-12 text-center text-muted-foreground"
+            data-test="tickets-empty"
+        >
+            <p>У вас ще немає заявок</p>
+        </div>
+
+        <template v-else>
+            <table class="w-full text-left text-sm" data-test="tickets-table">
+                <thead class="border-b text-muted-foreground">
+                    <tr>
+                        <th class="py-2">ID</th>
+                        <th>Назва</th>
+                        <th v-if="isAdmin">Автор</th>
+                        <th>Пріоритет</th>
+                        <th>Статус</th>
+                        <th>Створено</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="t in tickets.data" :key="t.id" class="border-b">
+                        <td class="py-2">{{ t.id }}</td>
+                        <td>{{ t.title }}</td>
+                        <td v-if="isAdmin">{{ t.author }}</td>
+                        <td>{{ t.priority.label }}</td>
+                        <td><Badge variant="secondary">{{ t.status.label }}</Badge></td>
+                        <td>{{ formatDate(t.created_at) }}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <nav v-if="tickets.meta.last_page > 1" class="mt-4 flex gap-2">
+                <Button v-if="tickets.links.prev" as-child variant="outline">
+                    <Link :href="tickets.links.prev" preserve-scroll>Назад</Link>
+                </Button>
+                <span class="self-center text-sm">
+                    {{ tickets.meta.current_page }} / {{ tickets.meta.last_page }}
+                </span>
+                <Button v-if="tickets.links.next" as-child variant="outline">
+                    <Link :href="tickets.links.next" preserve-scroll>Далі</Link>
+                </Button>
+            </nav>
+        </template>
     </div>
 </template>
