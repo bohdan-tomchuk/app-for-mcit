@@ -62,4 +62,14 @@ class TicketListTest extends TestCase
         $this->actingAs($user)->get(route('tickets.index', ['page' => 2]))
             ->assertInertia(fn (Assert $page) => $page->has('tickets.data', 1));
     }
+
+    public function test_user_without_tickets_gets_empty_list_and_can_create(): void
+    {
+        Ticket::factory()->create();
+
+        $this->actingAs(User::factory()->create())->get(route('tickets.index'))
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('tickets.data', 0)
+                ->where('can.create', true));
+    }
 }

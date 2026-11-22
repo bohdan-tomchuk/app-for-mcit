@@ -40,7 +40,7 @@ const formatDate = (iso: string | null) =>
             class="py-12 text-center text-muted-foreground"
             data-test="tickets-empty"
         >
-            <p>У вас ще немає заявок</p>
+            <p>{{ isAdmin ? 'Заявок немає' : 'У вас ще немає заявок' }}</p>
         </div>
 
         <template v-else>
@@ -56,13 +56,13 @@ const formatDate = (iso: string | null) =>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="t in tickets.data" :key="t.id" class="border-b">
-                        <td class="py-2">{{ t.id }}</td>
-                        <td>{{ t.title }}</td>
-                        <td v-if="isAdmin">{{ t.author }}</td>
-                        <td>{{ t.priority.label }}</td>
-                        <td><Badge variant="secondary">{{ t.status.label }}</Badge></td>
-                        <td>{{ formatDate(t.created_at) }}</td>
+                    <tr v-for="ticket in tickets.data" :key="ticket.id" class="border-b">
+                        <td class="py-2">{{ ticket.id }}</td>
+                        <td>{{ ticket.title }}</td>
+                        <td v-if="isAdmin">{{ ticket.author }}</td>
+                        <td>{{ ticket.priority.label }}</td>
+                        <td><Badge variant="secondary">{{ ticket.status.label }}</Badge></td>
+                        <td>{{ formatDate(ticket.created_at) }}</td>
                     </tr>
                 </tbody>
             </table>
