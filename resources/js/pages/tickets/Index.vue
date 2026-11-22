@@ -1,8 +1,15 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
 import Heading from '@/components/Heading.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { create, index, show } from '@/routes/tickets';
 import type { Paginated, Ticket } from '@/types';
 
@@ -10,7 +17,18 @@ defineProps<{
     tickets: Paginated<Ticket>;
     isAdmin: boolean;
     can: { create: boolean };
+    filters: { status: string | null };
+    statuses: { value: string; label: string }[];
 }>();
+
+const ALL = 'all';
+
+const applyStatus = (value: unknown) =>
+    router.get(
+        index().url,
+        value && value !== ALL ? { status: String(value) } : {},
+        { preserveScroll: true, preserveState: true },
+    );
 
 defineOptions({
     layout: {
@@ -35,12 +53,51 @@ const formatDate = (iso: string | null) =>
             </Button>
         </div>
 
+        <div class="my-4 flex items-center gap-2">
+            <Select
+                :model-value="filters.status ?? ALL"
+                @update:model-value="applyStatus"
+            >
+                <SelectTrigger class="w-48" data-test="status-filter">
+                    <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem :value="ALL">Усі</SelectItem>
+                    <SelectItem
+                        v-for="s in statuses"
+                        :key="s.value"
+                        :value="s.value"
+                    >
+                        {{ s.label }}
+                    </SelectItem>
+                </SelectContent>
+            </Select>
+            <Button
+                variant="outline"
+                data-test="filter-reset"
+                @click="applyStatus(null)"
+            >
+                Скинути
+            </Button>
+        </div>
+
         <div
             v-if="tickets.data.length === 0"
             class="py-12 text-center text-muted-foreground"
             data-test="tickets-empty"
         >
-            <p>{{ isAdmin ? 'Заявок немає' : 'У вас ще немає заявок' }}</p>
+            <template v-if="filters.status">
+                <p>Нічого не знайдено</p>
+                <Button
+                    class="mt-2"
+                    variant="outline"
+                    data-test="filter-empty-reset"
+                    @click="applyStatus(null)"
+                >
+                    Скинути фільтр
+                </Button>
+            </template>
+            <p v-else>{{ isAdmin ? 'Заявок немає' : 'У вас ще немає заявок' }}</p>
         </div>
 
         <template v-else>

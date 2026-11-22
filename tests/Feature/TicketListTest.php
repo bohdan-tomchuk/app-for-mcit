@@ -72,4 +72,35 @@ class TicketListTest extends TestCase
                 ->has('tickets.data', 0)
                 ->where('can.create', true));
     }
+
+    public function test_filters_by_status_and_keeps_param_in_pagination_links(): void
+    {
+        $user = User::factory()->create();
+        Ticket::factory()->count(16)->for($user, 'author')->create(['status' => 'in_progress']);
+        Ticket::factory()->for($user, 'author')->create(['status' => 'new']);
+
+        $this->actingAs($user)->get(route('tickets.index', ['status' => 'in_progress']))
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('tickets.data', 15)
+                ->where('tickets.meta.total', 16)
+                ->where('filters.status', 'in_progress')
+                ->where('tickets.data.0.status.value', 'in_progress')
+                ->where('tickets.links.next', fn ($url) => str_contains($url, 'status=in_progress')));
+    }
+
+    public function test_unknown_status_fails_validation(): void
+    {
+        $this->actingAs(User::factory()->create())
+            ->get(route('tickets.index', ['status' => 'bogus']))
+            ->assertSessionHasErrors('status');
+    }
+
+    public function test_filter_never_exposes_foreign_tickets(): void
+    {
+        $user = User::factory()->create();
+        Ticket::factory()->create(['status' => 'new']);
+
+        $this->actingAs($user)->get(route('tickets.index', ['status' => 'new']))
+            ->assertInertia(fn (Assert $page) => $page->has('tickets.data', 0));
+    }
 }

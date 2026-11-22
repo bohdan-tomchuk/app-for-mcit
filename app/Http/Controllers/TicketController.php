@@ -13,6 +13,7 @@ use App\Models\Ticket;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -22,15 +23,25 @@ class TicketController extends Controller
     {
         $user = $request->user();
 
+        $filters = $request->validate([
+            'status' => ['nullable', Rule::enum(TicketStatus::class)],
+        ]);
+
         $tickets = Ticket::visibleTo($user)
+            ->when($filters['status'] ?? null, fn ($query, $status) => $query->where('status', $status))
             ->when($user->isAdmin(), fn ($query) => $query->with('author:id,name'))
             ->orderByDesc('id')
-            ->paginate(15);
+            ->paginate(15)
+            ->withQueryString();
 
         return Inertia::render('tickets/Index', [
             'tickets' => TicketResource::collection($tickets),
             'isAdmin' => $user->isAdmin(),
             'can' => ['create' => $user->can('create', Ticket::class)],
+            'filters' => ['status' => $filters['status'] ?? null],
+            'statuses' => collect(TicketStatus::cases())
+                ->map(fn (TicketStatus $s) => ['value' => $s->value, 'label' => $s->label()])
+                ->all(),
         ]);
     }
 
