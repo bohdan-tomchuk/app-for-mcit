@@ -63,7 +63,7 @@ const formatDate = (iso: string | null | undefined) =>
             <ul class="text-sm">
                 <li>Створено {{ ticket.author }}, {{ formatDate(ticket.created_at) }}</li>
                 <li v-for="h in history" :key="h.id">
-                    {{ h.from_status.label }} → {{ h.to_status.label }}, {{ h.actor }}, {{ formatDate(h.created_at) }}
+                    {{ h.from_status.label }} → {{ h.to_status.label }}, {{ h.actor.name }}, {{ formatDate(h.created_at) }}
                 </li>
             </ul>
         </section>

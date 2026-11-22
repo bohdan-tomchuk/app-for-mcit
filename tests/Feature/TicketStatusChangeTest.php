@@ -116,7 +116,7 @@ class TicketStatusChangeTest extends TestCase
                 ->has('history', 1)
                 ->where('history.0.from_status.value', 'new')
                 ->where('history.0.to_status.value', 'in_progress')
-                ->where('history.0.actor', $admin->name)
+                ->where('history.0.actor', ['id' => $admin->id, 'name' => $admin->name])
                 ->has('history.0.created_at'));
 
         $this->actingAs($ticket->author)->get(route('tickets.show', $ticket))

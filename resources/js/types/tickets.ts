@@ -21,7 +21,7 @@ export type StatusChange = {
     id: number;
     from_status: Option;
     to_status: Option;
-    actor: string;
+    actor: { id: number; name: string };
     created_at: string | null;
 };
 

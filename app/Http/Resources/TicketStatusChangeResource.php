@@ -20,7 +20,7 @@ class TicketStatusChangeResource extends JsonResource
             'id' => $this->id,
             'from_status' => ['value' => $this->from_status->value, 'label' => $this->from_status->label()],
             'to_status' => ['value' => $this->to_status->value, 'label' => $this->to_status->label()],
-            'actor' => $this->actor->name,
+            'actor' => ['id' => $this->actor->id, 'name' => $this->actor->name],
             'created_at' => $this->created_at?->toIso8601String(),
         ];
     }
