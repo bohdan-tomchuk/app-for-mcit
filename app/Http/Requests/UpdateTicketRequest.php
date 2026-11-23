@@ -18,6 +18,6 @@ class UpdateTicketRequest extends StoreTicketRequest
 
     public function ticket(): Ticket
     {
-        return $this->ticket ??= Ticket::visibleTo($this->user())->findOrFail($this->route('ticket'));
+        return $this->ticket ??= Ticket::visibleTo($this->user())->findOrFail((int) $this->route('ticket'));
     }
 }

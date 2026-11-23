@@ -6,6 +6,7 @@ use App\Models\Ticket;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 class TicketShowTest extends TestCase
@@ -56,5 +57,28 @@ class TicketShowTest extends TestCase
 
         auth()->logout();
         $this->get(route('tickets.show', Ticket::factory()->create()))->assertRedirect(route('login'));
+    }
+
+    /**
+     * @return array<string, array{string}>
+     */
+    public static function malformedIds(): array
+    {
+        return [
+            'letters' => ['abc'],
+            'overflowing bigint' => ['99999999999999999999'],
+            'negative' => ['-1'],
+        ];
+    }
+
+    #[DataProvider('malformedIds')]
+    public function test_malformed_ticket_id_is_404_on_every_ticket_route(string $id): void
+    {
+        $this->actingAs(User::factory()->admin()->create());
+
+        $this->get("/tickets/{$id}")->assertNotFound();
+        $this->get("/tickets/{$id}/edit")->assertNotFound();
+        $this->put("/tickets/{$id}", ['title' => 'a', 'description' => 'b'])->assertNotFound();
+        $this->patch("/tickets/{$id}/status", ['status' => 'in_progress'])->assertNotFound();
     }
 }
