@@ -100,11 +100,7 @@ const formatDate = (iso: string | null) =>
                     </SelectItem>
                 </SelectContent>
             </Select>
-            <Button
-                variant="outline"
-                data-test="filter-reset"
-                @click="reset"
-            >
+            <Button variant="outline" data-test="filter-reset" @click="reset">
                 Скинути
             </Button>
         </div>
@@ -125,7 +121,9 @@ const formatDate = (iso: string | null) =>
                     Скинути фільтр
                 </Button>
             </template>
-            <p v-else>{{ isAdmin ? 'Заявок немає' : 'У вас ще немає заявок' }}</p>
+            <p v-else>
+                {{ isAdmin ? 'Заявок немає' : 'У вас ще немає заявок' }}
+            </p>
         </div>
 
         <template v-else>
@@ -141,7 +139,11 @@ const formatDate = (iso: string | null) =>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="ticket in tickets.data" :key="ticket.id" class="border-b">
+                    <tr
+                        v-for="ticket in tickets.data"
+                        :key="ticket.id"
+                        class="border-b"
+                    >
                         <td class="py-2">{{ ticket.id }}</td>
                         <td>
                             <Link
@@ -154,7 +156,11 @@ const formatDate = (iso: string | null) =>
                         </td>
                         <td v-if="isAdmin">{{ ticket.author }}</td>
                         <td>{{ ticket.priority.label }}</td>
-                        <td><Badge variant="secondary">{{ ticket.status.label }}</Badge></td>
+                        <td>
+                            <Badge variant="secondary">{{
+                                ticket.status.label
+                            }}</Badge>
+                        </td>
                         <td>{{ formatDate(ticket.created_at) }}</td>
                     </tr>
                 </tbody>
@@ -162,10 +168,13 @@ const formatDate = (iso: string | null) =>
 
             <nav v-if="tickets.meta.last_page > 1" class="mt-4 flex gap-2">
                 <Button v-if="tickets.links.prev" as-child variant="outline">
-                    <Link :href="tickets.links.prev" preserve-scroll>Назад</Link>
+                    <Link :href="tickets.links.prev" preserve-scroll
+                        >Назад</Link
+                    >
                 </Button>
                 <span class="self-center text-sm">
-                    {{ tickets.meta.current_page }} / {{ tickets.meta.last_page }}
+                    {{ tickets.meta.current_page }} /
+                    {{ tickets.meta.last_page }}
                 </span>
                 <Button v-if="tickets.links.next" as-child variant="outline">
                     <Link :href="tickets.links.next" preserve-scroll>Далі</Link>

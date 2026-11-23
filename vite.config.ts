@@ -68,6 +68,12 @@ export default defineConfig({
         htmlWhitespaceSensitivity: 'css',
         ignorePatterns: [
             '.github/**',
+            '.claude/**',
+            '.mcp.json',
+            'CLAUDE.md',
+            'README.md',
+            'docs/**',
+            'lang/uk.json',
             'composer.json',
             'resources/js/components/ui/*',
             'resources/views/mail/*',
