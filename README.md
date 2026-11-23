@@ -27,30 +27,28 @@ docker compose -f compose.run.yaml up --build
 | Docker | Docker Desktop / Engine з Compose v2 (для Sail) |
 | Laravel | 13 |
 
-## Розробка: запуск через Sail (рекомендовано)
+## Розробка: запуск через Sail
+
+Це шлях для розробки (гаряче перезавантаження, тести). Для швидкої перевірки без PHP і Node див. [Швидкий запуск](#швидкий-запуск-лише-docker).
+
+Спершу потрібен `vendor/`, бо `vendor/bin/sail` з'являється лише після `composer install`: виконайте його на хості або, якщо PHP немає, в контейнері:
+
+```bash
+docker run --rm -u "$(id -u):$(id -g)" -v "$(pwd):/var/www/html" -w /var/www/html laravelsail/php84-composer:latest composer install --ignore-platform-reqs
+```
+
+Далі чотири команди:
 
 ```bash
 cp .env.example .env
-```
-
-Якщо на машині немає PHP, перший `composer install` можна виконати в контейнері:
-
-```bash
-docker run --rm -u "$(id -u):$(id -g)" -v "$(pwd):/var/www/html" -w /var/www/html laravelsail/php85-composer:latest composer install --ignore-platform-reqs
-```
-
-Далі:
-
-```bash
 vendor/bin/sail up -d
-vendor/bin/sail artisan key:generate
-vendor/bin/sail artisan migrate
+vendor/bin/sail composer setup
 vendor/bin/sail artisan db:seed
-vendor/bin/sail npm install
-vendor/bin/sail npm run build
 ```
 
-Застосунок: http://localhost. Для розробки з гарячим перезавантаженням фронтенду замість `npm run build` запустіть `vendor/bin/sail composer run dev`.
+`composer setup` у контейнері ставить залежності, генерує `APP_KEY`, виконує міграції та збирає фронтенд. Застосунок: http://localhost, вхід `admin@example.com` / `password`. Для розробки з гарячим перезавантаженням фронтенду запустіть `vendor/bin/sail composer run dev`.
+
+Префікс `vendor/bin/sail` потрібен, бо PHP, Composer і Node працюють усередині контейнера, а не на хості, і скрипт `sail` лежить у `vendor/bin/`. Щоб не набирати його щоразу: `alias sail='sh $([ -f sail ] && echo sail || echo vendor/bin/sail)'` (у `~/.zshrc` або `~/.bashrc`), тоді `sail up -d`, `sail artisan test` тощо.
 
 Скинути базу й наповнити її заново:
 
