@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
+import { ref } from 'vue';
 import Heading from '@/components/Heading.vue';
 import InputError from '@/components/InputError.vue';
 import { Badge } from '@/components/ui/badge';
@@ -14,8 +15,18 @@ const props = defineProps<{
     can: { update: boolean };
 }>();
 
+const changing = ref(false);
+
 const changeStatus = (target: string) =>
-    router.patch(status(props.ticket.id).url, { status: target }, { preserveScroll: true });
+    router.patch(
+        status(props.ticket.id).url,
+        { status: target },
+        {
+            preserveScroll: true,
+            onStart: () => (changing.value = true),
+            onFinish: () => (changing.value = false),
+        },
+    );
 
 defineOptions({
     layout: {
@@ -35,7 +46,9 @@ const formatDate = (iso: string | null | undefined) =>
 
         <dl class="grid grid-cols-[10rem_1fr] gap-y-2 text-sm">
             <dt class="text-muted-foreground">Статус</dt>
-            <dd><Badge variant="secondary">{{ ticket.status.label }}</Badge></dd>
+            <dd>
+                <Badge variant="secondary">{{ ticket.status.label }}</Badge>
+            </dd>
             <dt class="text-muted-foreground">Пріоритет</dt>
             <dd>{{ ticket.priority.label }}</dd>
             <dt class="text-muted-foreground">Автор</dt>
@@ -46,10 +59,15 @@ const formatDate = (iso: string | null | undefined) =>
             <dd>{{ formatDate(ticket.updated_at) }}</dd>
         </dl>
 
-        <div v-if="transitions.length" class="flex gap-2" data-test="ticket-transitions">
+        <div
+            v-if="transitions.length"
+            class="flex gap-2"
+            data-test="ticket-transitions"
+        >
             <Button
                 v-for="t in transitions"
                 :key="t.value"
+                :disabled="changing"
                 @click="changeStatus(t.value)"
             >
                 {{ t.value === 'in_progress' ? 'Взяти в роботу' : 'Завершити' }}
@@ -60,14 +78,20 @@ const formatDate = (iso: string | null | undefined) =>
         </Button>
         <InputError :message="$page.props.errors.status" />
 
-        <p class="whitespace-pre-wrap" data-test="ticket-description">{{ ticket.description }}</p>
+        <p class="whitespace-pre-wrap" data-test="ticket-description">
+            {{ ticket.description }}
+        </p>
 
         <section data-test="ticket-history">
             <h2 class="mb-2 font-semibold">Історія</h2>
             <ul class="text-sm">
-                <li>Створено {{ ticket.author }}, {{ formatDate(ticket.created_at) }}</li>
+                <li>
+                    Створено {{ ticket.author }},
+                    {{ formatDate(ticket.created_at) }}
+                </li>
                 <li v-for="h in history" :key="h.id">
-                    {{ h.from_status.label }} → {{ h.to_status.label }}, {{ h.actor.name }}, {{ formatDate(h.created_at) }}
+                    {{ h.from_status.label }} → {{ h.to_status.label }},
+                    {{ h.actor.name }}, {{ formatDate(h.created_at) }}
                 </li>
             </ul>
         </section>
