@@ -2,6 +2,20 @@
 
 Вебзастосунок для подачі та обробки заявок (Laravel + Vue 3 / TypeScript + PostgreSQL). Користувач створює заявки й бачить лише власні; адміністратор бачить усі та переводить їх по статусах «Нова» → «У роботі» → «Завершена» з історією змін. Повна специфікація: [docs/SPEC.md](docs/SPEC.md).
 
+## Швидкий запуск (лише Docker)
+
+Потрібні тільки Docker з Compose v2; PHP, Composer і Node на хості не потрібні.
+
+```bash
+docker compose -f compose.run.yaml up --build
+```
+
+Застосунок: http://localhost:8080. Міграції та наповнення даними виконуються автоматично при першому запуску (повторний `up` дані не дублює). Увійдіть як `admin@example.com` / `password` (інші акаунти: [Тестові акаунти](#тестові-акаунти)); сценарій перевірки пошуку: [Перевірка пошуку на seed-даних](#перевірка-пошуку-на-seed-даних).
+
+Зупинити: `docker compose -f compose.run.yaml down`; з очищенням бази (свіжі дані при наступному запуску): `docker compose -f compose.run.yaml down -v`.
+
+Це prod-подібний режим (`APP_ENV=production`, `APP_DEBUG=false`, FrankenPHP, без Node у фінальному образі). `APP_KEY` у `compose.run.yaml` демонстраційний і непридатний для реального продакшну.
+
 ## Версії оточення
 
 | Компонент | Версія |
@@ -13,7 +27,7 @@
 | Docker | Docker Desktop / Engine з Compose v2 (для Sail) |
 | Laravel | 13 |
 
-## Запуск через Sail (рекомендовано)
+## Розробка: запуск через Sail (рекомендовано)
 
 ```bash
 cp .env.example .env
