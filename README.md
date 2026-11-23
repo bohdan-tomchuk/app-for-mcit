@@ -20,7 +20,7 @@ docker compose -f compose.run.yaml up --build
 
 | Компонент | Версія |
 |---|---|
-| PHP | 8.3+ (у Sail: 8.5) |
+| PHP | 8.4+ (у Sail: 8.5) |
 | Composer | 2.x |
 | Node.js | 22 |
 | PostgreSQL | 18 (потрібне розширення `pg_trgm`) |
@@ -66,7 +66,7 @@ vendor/bin/sail artisan test
 
 ## Запуск без Docker
 
-Потрібні локально PHP 8.3+ з розширенням `pdo_pgsql`, Composer, Node.js 22 і PostgreSQL 18.
+Потрібні локально PHP 8.4+ з розширенням `pdo_pgsql`, Composer, Node.js 22 і PostgreSQL 18.
 
 1. Створіть дві бази: `laravel` (робоча) і `testing` (для тестів); користувач БД має мати право створювати розширення (міграція виконує `CREATE EXTENSION pg_trgm`).
 2. `cp .env.example .env` і в `.env` змініть `DB_HOST=127.0.0.1` та `DB_USERNAME` / `DB_PASSWORD` на свої.
