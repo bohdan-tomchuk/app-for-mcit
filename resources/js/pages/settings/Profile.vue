@@ -2,7 +2,6 @@
 import { Form, Head, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
-import DeleteUser from '@/components/DeleteUser.vue';
 import Heading from '@/components/Heading.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
@@ -71,7 +70,6 @@ const user = computed(() => page.props.auth.user);
                 <InputError class="mt-2" :message="errors.email" />
             </div>
 
-
             <div class="flex items-center gap-4">
                 <Button :disabled="processing" data-test="update-profile-button"
                     >Save</Button
@@ -79,6 +77,4 @@ const user = computed(() => page.props.auth.user);
             </div>
         </Form>
     </div>
-
-    <DeleteUser />
 </template>
