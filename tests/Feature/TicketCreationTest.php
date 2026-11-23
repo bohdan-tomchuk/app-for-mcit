@@ -130,4 +130,15 @@ class TicketCreationTest extends TestCase
         $this->assertSame(TicketStatus::InProgress, Ticket::factory()->inProgress()->create()->status);
         $this->assertSame(TicketStatus::Done, Ticket::factory()->done()->create()->status);
     }
+
+    public function test_falsy_string_values_are_saved_as_is(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->post(route('tickets.store'), ['title' => '0', 'description' => '0'])
+            ->assertRedirect(route('tickets.index', absolute: false));
+
+        $this->assertDatabaseHas('tickets', ['user_id' => $user->id, 'title' => '0', 'description' => '0']);
+    }
 }

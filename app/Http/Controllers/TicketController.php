@@ -62,7 +62,7 @@ class TicketController extends Controller
 
     public function store(StoreTicketRequest $request): RedirectResponse
     {
-        $ticket = new Ticket(array_filter($request->validated()));
+        $ticket = new Ticket($this->withoutNulls($request->validated()));
         $ticket->user_id = $request->user()->id;
         $ticket->save();
 
@@ -106,7 +106,7 @@ class TicketController extends Controller
     {
         $ticket = $request->ticket();
 
-        if (! $updateTicket->handle($ticket, array_filter($request->validated()), $request->user())) {
+        if (! $updateTicket->handle($ticket, $this->withoutNulls($request->validated()), $request->user())) {
             Inertia::flash('toast', ['type' => 'error', 'message' => __('Заявку вже взято в роботу, редагування недоступне')]);
 
             return to_route('tickets.show', $ticket);
@@ -122,8 +122,20 @@ class TicketController extends Controller
      */
     private function priorityOptions(): array
     {
-        return collect(TicketPriority::cases())
-            ->map(fn (TicketPriority $p) => ['value' => $p->value, 'label' => $p->label()])
-            ->all();
+        return array_map(
+            fn (TicketPriority $p) => ['value' => $p->value, 'label' => $p->label()],
+            TicketPriority::cases(),
+        );
+    }
+
+    /**
+     * Drops only null (e.g. blank priority); falsy strings like "0" are real values.
+     *
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    private function withoutNulls(array $data): array
+    {
+        return array_filter($data, fn (mixed $value) => $value !== null);
     }
 }

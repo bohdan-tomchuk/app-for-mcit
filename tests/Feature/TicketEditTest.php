@@ -110,4 +110,16 @@ class TicketEditTest extends TestCase
             ->put(route('tickets.update', $ticket), ['title' => '', 'description' => ''])
             ->assertSessionHasErrors(['title', 'description']);
     }
+
+    public function test_falsy_string_values_are_saved_on_update(): void
+    {
+        $user = User::factory()->create();
+        $ticket = Ticket::factory()->for($user, 'author')->create();
+
+        $this->actingAs($user)
+            ->put(route('tickets.update', $ticket), ['title' => '0', 'description' => '0'])
+            ->assertRedirect(route('tickets.show', $ticket, absolute: false));
+
+        $this->assertDatabaseHas('tickets', ['id' => $ticket->id, 'title' => '0', 'description' => '0']);
+    }
 }
