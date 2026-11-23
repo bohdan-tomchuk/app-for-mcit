@@ -103,4 +103,46 @@ class TicketListTest extends TestCase
         $this->actingAs($user)->get(route('tickets.index', ['status' => 'new']))
             ->assertInertia(fn (Assert $page) => $page->has('tickets.data', 0));
     }
+
+    public function test_search_is_case_insensitive_including_cyrillic(): void
+    {
+        $user = User::factory()->create();
+        $match = Ticket::factory()->for($user, 'author')->create(['title' => 'Не працює принтер у бухгалтерії']);
+        Ticket::factory()->for($user, 'author')->create(['title' => 'Зламався монітор']);
+
+        $this->actingAs($user)->get(route('tickets.index', ['search' => 'ПРИНТЕР']))
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('tickets.data', 1)
+                ->where('tickets.data.0.id', $match->id)
+                ->where('filters.search', 'ПРИНТЕР'));
+    }
+
+    public function test_search_treats_wildcards_literally(): void
+    {
+        $user = User::factory()->create();
+        $match = Ticket::factory()->for($user, 'author')->create(['title' => 'Знижка 50% на а_б\\в']);
+        Ticket::factory()->for($user, 'author')->create(['title' => 'Знижка 500 на аxбв']);
+
+        foreach (['50%', 'а_б', '\\'] as $term) {
+            $this->actingAs($user)->get(route('tickets.index', ['search' => $term]))
+                ->assertInertia(fn (Assert $page) => $page
+                    ->has('tickets.data', 1)
+                    ->where('tickets.data.0.id', $match->id));
+        }
+    }
+
+    public function test_search_combines_with_status_and_visibility_and_keeps_pagination_links(): void
+    {
+        $user = User::factory()->create();
+        Ticket::factory()->count(16)->for($user, 'author')->create(['title' => 'Принтер', 'status' => 'new']);
+        Ticket::factory()->for($user, 'author')->create(['title' => 'Принтер', 'status' => 'done']);
+        Ticket::factory()->create(['title' => 'Принтер', 'status' => 'new']);
+
+        $this->actingAs($user)->get(route('tickets.index', ['search' => 'ПРИНТЕР', 'status' => 'new']))
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('tickets.data', 15)
+                ->where('tickets.meta.total', 16)
+                ->where('tickets.links.next', fn ($url) => str_contains($url, 'status=new')
+                    && str_contains($url, 'search='.rawurlencode('ПРИНТЕР'))));
+    }
 }

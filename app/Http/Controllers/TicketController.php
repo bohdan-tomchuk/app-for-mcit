@@ -25,9 +25,15 @@ class TicketController extends Controller
 
         $filters = $request->validate([
             'status' => ['nullable', Rule::enum(TicketStatus::class)],
+            'search' => ['nullable', 'string', 'max:255'],
         ]);
 
+        $search = $filters['search'] ?? null;
+
         $tickets = Ticket::visibleTo($user)
+            ->when($search, fn ($query, $term) => $query->where(
+                'title', 'ILIKE', '%'.addcslashes($term, '\\%_').'%',
+            ))
             ->when($filters['status'] ?? null, fn ($query, $status) => $query->where('status', $status))
             ->when($user->isAdmin(), fn ($query) => $query->with('author:id,name'))
             ->orderByDesc('id')
@@ -38,7 +44,7 @@ class TicketController extends Controller
             'tickets' => TicketResource::collection($tickets),
             'isAdmin' => $user->isAdmin(),
             'can' => ['create' => $user->can('create', Ticket::class)],
-            'filters' => ['status' => $filters['status'] ?? null],
+            'filters' => ['status' => $filters['status'] ?? null, 'search' => $search],
             'statuses' => collect(TicketStatus::cases())
                 ->map(fn (TicketStatus $s) => ['value' => $s->value, 'label' => $s->label()])
                 ->all(),

@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
+import { useDebounceFn } from '@vueuse/core';
+import { ref } from 'vue';
 import Heading from '@/components/Heading.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
     Select,
     SelectContent,
@@ -13,22 +16,40 @@ import {
 import { create, index, show } from '@/routes/tickets';
 import type { Paginated, Ticket } from '@/types';
 
-defineProps<{
+const props = defineProps<{
     tickets: Paginated<Ticket>;
     isAdmin: boolean;
     can: { create: boolean };
-    filters: { status: string | null };
+    filters: { status: string | null; search: string | null };
     statuses: { value: string; label: string }[];
 }>();
 
 const ALL = 'all';
 
-const applyStatus = (value: unknown) =>
+const search = ref(props.filters.search ?? '');
+
+const visit = (status: string | null, term: string) =>
     router.get(
         index().url,
-        value && value !== ALL ? { status: String(value) } : {},
-        { preserveScroll: true, preserveState: true },
+        {
+            ...(status && status !== ALL ? { status } : {}),
+            ...(term.trim() ? { search: term.trim() } : {}),
+        },
+        { preserveScroll: true, preserveState: true, replace: true },
     );
+
+const applyStatus = (value: unknown) =>
+    visit(value ? String(value) : null, search.value);
+
+const applySearch = useDebounceFn(
+    () => visit(props.filters.status, search.value),
+    300,
+);
+
+const reset = () => {
+    search.value = '';
+    visit(null, '');
+};
 
 defineOptions({
     layout: {
@@ -54,6 +75,13 @@ const formatDate = (iso: string | null) =>
         </div>
 
         <div class="my-4 flex items-center gap-2">
+            <Input
+                v-model="search"
+                class="w-64"
+                placeholder="Пошук за назвою"
+                data-test="search-input"
+                @input="applySearch"
+            />
             <Select
                 :model-value="filters.status ?? ALL"
                 @update:model-value="applyStatus"
@@ -75,7 +103,7 @@ const formatDate = (iso: string | null) =>
             <Button
                 variant="outline"
                 data-test="filter-reset"
-                @click="applyStatus(null)"
+                @click="reset"
             >
                 Скинути
             </Button>
@@ -86,13 +114,13 @@ const formatDate = (iso: string | null) =>
             class="py-12 text-center text-muted-foreground"
             data-test="tickets-empty"
         >
-            <template v-if="filters.status">
+            <template v-if="filters.status || filters.search">
                 <p>Нічого не знайдено</p>
                 <Button
                     class="mt-2"
                     variant="outline"
                     data-test="filter-empty-reset"
-                    @click="applyStatus(null)"
+                    @click="reset"
                 >
                     Скинути фільтр
                 </Button>
