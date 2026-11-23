@@ -13,7 +13,7 @@ COPY composer.json composer.lock ./
 RUN composer install --no-dev --no-scripts --no-autoloader --no-interaction
 COPY . .
 RUN composer dump-autoload --no-dev --optimize --no-interaction \
-    && php artisan wayfinder:generate
+    && php artisan wayfinder:generate --with-form
 
 # Збірка фронтенду. Плагін Wayfinder викликає `php artisan`, але файли вже
 # згенеровано на попередньому етапі, тому php тут заглушка.
